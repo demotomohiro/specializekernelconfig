@@ -6,7 +6,7 @@ jobs:
       image: gentoo/stage3
     steps:
       - uses: actions/checkout@v7
-        run: |
+      - run: |
           #emerge --sync
           emerge sys-kernel/gentoo-sources dev-lang/nim
           emerge eselect kernel set 1
