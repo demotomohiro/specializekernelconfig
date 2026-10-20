@@ -1,0 +1,21 @@
+on: [push]
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    container:
+      image: gentoo/stage3
+    steps:
+      - uses: actions/checkout@v7
+        run: |
+          #emerge --sync
+          emerge sys-kernel/gentoo-sources dev-lang/nim
+          emerge eselect kernel set 1
+          #make --directory=/usr/src/linux O=$(pwd)/kernel_build allmodconfig
+          make --directory=/usr/src/linux O=$(pwd)/kernel_build defconfig
+          make --directory=/usr/src/linux -j$(nproc) O=$(pwd)/kernel_build
+          nim c -r src/builddb.nim $(pwd)/kernel_build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: upload module_alias_db
+          path: module_alias_db.txt
+          if-no-files-found: error
