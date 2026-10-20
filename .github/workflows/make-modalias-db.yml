@@ -7,7 +7,7 @@ jobs:
         image: gentoo/portage:latest
         volumes:
           - portage:/tmp/gentoo
-        command: cp -r /var/run/db/gentoo /tmp
+        command: cp -r /var/run/db/gentoo/* /tmp/gentoo
     container:
       image: gentoo/stage3:latest
       volumes:
