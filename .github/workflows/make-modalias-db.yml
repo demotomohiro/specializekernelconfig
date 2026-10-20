@@ -1,9 +1,16 @@
 on: [push]
 jobs:
-  make:
+  portage_volume:
     runs-on: ubuntu-latest
     container:
-      image: gentoo/stage3
+      image: gentoo/portage:latest
+      volumes: portage:/var/run/db/gentoo
+  make:
+    needs: portage_volume
+    runs-on: ubuntu-latest
+    container:
+      image: gentoo/stage3:latest
+      volumes: portage:/var/run/db/gentoo
     steps:
       - uses: actions/checkout@v7
       - run: |
