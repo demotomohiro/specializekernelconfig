@@ -6,6 +6,8 @@ jobs:
       image: gentoo/portage:latest
       volumes:
         - portage:/var/run/db/gentoo
+    steps:
+      - run: ls /var/run/db/gentoo
   make:
     needs: portage_volume
     runs-on: ubuntu-latest
