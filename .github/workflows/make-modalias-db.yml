@@ -11,11 +11,11 @@ jobs:
     container:
       image: gentoo/stage3:latest
       volumes:
-        - portage:/var/run/db/gentoo
+        - portage:/var/db/repos/gentoo
     steps:
       - uses: actions/checkout@v7
       - run: |
-          ls -l /var/run/db/gentoo/
+          ls -l /var/db/repos/gentoo/
           #emerge --sync
           emerge sys-kernel/gentoo-sources dev-lang/nim
           emerge eselect kernel set 1
