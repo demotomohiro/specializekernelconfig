@@ -13,18 +13,17 @@ jobs:
         - portage:/var/db/repos/gentoo
     steps:
       - uses: actions/checkout@v7
+      # disable features generates errors as they call syscall blocked by docker
+      # https://github.com/gentoo/gentoo-docker-images/issues/81
+      # and use binary package if possible to save time
+      - run: echo 'FEATURES="-ipc-sandbox -network-sandbox -pid-sandbox getbinpkg"' >> /etc/portage/make.conf
+      - run: emerge dev-lang/nim
+      - run: USE="symlink" emerge sys-kernel/gentoo-sources
       - run: |
-          # disable features generates errors as they call syscall blocked by docker
-          # https://github.com/gentoo/gentoo-docker-images/issues/81
-          echo 'FEATURES="-ipc-sandbox -network-sandbox -pid-sandbox"' >> /etc/portage/make.conf
-          emerge --getbinpkg dev-lang/nim
-          emerge sys-kernel/gentoo-sources
-          eselect kernel set 1
           #make --directory=/usr/src/linux O=$(pwd)/kernel_build allmodconfig
           make --directory=/usr/src/linux O=$(pwd)/kernel_build defconfig
           make --directory=/usr/src/linux -j$(nproc) O=$(pwd)/kernel_build
-          nim -v
-          nim c -r src/builddb.nim $(pwd)/kernel_build
+      - run: nim c -r src/builddb.nim $(pwd)/kernel_build
       - uses: actions/upload-artifact@v7
         with:
           name: upload module_alias_db
