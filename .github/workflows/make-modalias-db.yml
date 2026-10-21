@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: |
-          ls -l /var/run
+          ls -l /var/run/
           #emerge --sync
           emerge sys-kernel/gentoo-sources dev-lang/nim
           emerge eselect kernel set 1
