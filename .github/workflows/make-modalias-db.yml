@@ -20,8 +20,8 @@ jobs:
       - run: emerge dev-lang/nim
       - run: USE="symlink" emerge sys-kernel/gentoo-sources
       - run: |
-          #make --directory=/usr/src/linux O=$(pwd)/kernel_build allmodconfig
-          make --directory=/usr/src/linux O=$(pwd)/kernel_build defconfig
+          make --directory=/usr/src/linux O=$(pwd)/kernel_build allmodconfig
+          #make --directory=/usr/src/linux O=$(pwd)/kernel_build defconfig
           make --directory=/usr/src/linux -j$(nproc) O=$(pwd)/kernel_build
       - run: nim c -r src/builddb.nim $(pwd)/kernel_build
       - uses: actions/upload-artifact@v7
