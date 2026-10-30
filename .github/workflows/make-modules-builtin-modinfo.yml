@@ -1,0 +1,32 @@
+on: [push]
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    services:
+      portage:
+        image: gentoo/portage:latest
+        volumes:
+          - portage:/var/db/repos/gentoo
+    container:
+      image: gentoo/stage3:latest
+      volumes:
+        - portage:/var/db/repos/gentoo
+    steps:
+      # disable features generates errors as they call syscall blocked by docker
+      # https://github.com/gentoo/gentoo-docker-images/issues/81
+      # and use binary package if possible to save time
+      - run: echo 'FEATURES="-ipc-sandbox -network-sandbox -pid-sandbox getbinpkg"' >> /etc/portage/make.conf
+      - run: USE="symlink" emerge sys-kernel/gentoo-sources
+      - run: |
+          make --directory=/usr/src/linux O=$(pwd)/kernel_build allyesconfig
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_COMPILE_TEST
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_UAPI_HEADER_TEST
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_VIRTUALIZATION
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_EXPERT
+          make --directory=/usr/src/linux O=$(pwd)/kernel_build olddefconfig
+          make --directory=/usr/src/linux -j$(nproc) O=$(pwd)/kernel_build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: upload modules.builtin.modinfo
+          path: kernel_build/modules.builtin.modinfo
+          if-no-files-found: error
