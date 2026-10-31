@@ -20,17 +20,18 @@ jobs:
       - run: |
           make --directory=/usr/src/linux O=$(pwd)/kernel_build allyesconfig
           # Disable options not required to build kernel faster
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_COMPILE_TEST
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_UAPI_HEADER_TEST
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_COMPILE_TEST --disable CONFIG_UAPI_HEADER_TEST --disable CONFIG_EXPERT
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_VIRTUALIZATION
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_EXPERT
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_GCOV_KERNEL
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_PARTITION_ADVANCED
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_EXT2_FS --disable CONFIG_XFS_FS --disable CONFIG_BTRFS_FS --disable CONFIG_OCFS2_FS
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_NTFS_FS --disable CONFIG_NTFS3_FS
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_NETWORK_FILESYSTEMS
+          # run `ls -hsS fs/nls/` and you can see .c files for these code pages are large.
+          /usr/src/linux/scripts/config --file kernel_build/.config  --disable CONFIG_NLS_CODEPAGE_932 --disable CONFIG_NLS_CODEPAGE_936 --disable CONFIG_NLS_CODEPAGE_950 --disable CONFIG_NLS_CODEPAGE_949
+          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_SECURITY_TOMOYO --disable CONFIG_SECURITY_APPARMOR
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_SAMPLES
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_DEBUG_KERNEL
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_SECURITY_TOMOYO
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_SECURITY_APPARMOR
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_EXT2_FS --disable CONFIG_NTFS_FS --disable CONFIG_NTFS3_FS
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_NETWORK_FILESYSTEMS
-          /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_PARTITION_ADVANCED
           make --directory=/usr/src/linux O=$(pwd)/kernel_build olddefconfig
           make --directory=/usr/src/linux -j$(nproc) O=$(pwd)/kernel_build V=1
       - uses: actions/upload-artifact@v7
