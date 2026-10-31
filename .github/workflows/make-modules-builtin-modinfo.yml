@@ -33,7 +33,7 @@ jobs:
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_SAMPLES
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_DEBUG_KERNEL
           make --directory=/usr/src/linux O=$(pwd)/kernel_build olddefconfig
-          make --directory=/usr/src/linux -j$(nproc) O=$(pwd)/kernel_build V=1
+          make --directory=/usr/src/linux -j$(($(nproc)/2)) O=$(pwd)/kernel_build V=1
       - uses: actions/upload-artifact@v7
         with:
           name: upload modules.builtin.modinfo
