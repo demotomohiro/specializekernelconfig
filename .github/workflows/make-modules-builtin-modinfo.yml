@@ -12,13 +12,15 @@ jobs:
       volumes:
         - portage:/var/db/repos/gentoo
     steps:
+      - uses: actions/checkout@v7
       # disable features generates errors as they call syscall blocked by docker
       # https://github.com/gentoo/gentoo-docker-images/issues/81
       # and use binary package if possible to save time
       - run: echo 'FEATURES="-ipc-sandbox -network-sandbox -pid-sandbox getbinpkg"' >> /etc/portage/make.conf
+      - run: emerge dev-lang/nim
       - run: USE="symlink" emerge sys-kernel/gentoo-sources
       - run: |
-          make --directory=/usr/src/linux O=$(pwd)/kernel_build allyesconfig
+          make --directory=/usr/src/linux O=$(pwd)/kernel_build allmodconfig
           # Disable options not required to build kernel faster
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_COMPILE_TEST --disable CONFIG_UAPI_HEADER_TEST --disable CONFIG_EXPERT
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_VIRTUALIZATION
@@ -34,8 +36,11 @@ jobs:
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_DEBUG_KERNEL
           make --directory=/usr/src/linux O=$(pwd)/kernel_build olddefconfig
           make --directory=/usr/src/linux -j$(($(nproc)/2)) O=$(pwd)/kernel_build V=1
+      - run: nim c -r -d:release src/builddb_ko.nim $(pwd)/kernel_build
       - uses: actions/upload-artifact@v7
         with:
           name: upload modules.builtin.modinfo
-          path: kernel_build/modules.builtin.modinfo
+          path: |
+            kernel_build/modules.builtin.modinfo
+            skc_modules.module.modinfo
           if-no-files-found: error
