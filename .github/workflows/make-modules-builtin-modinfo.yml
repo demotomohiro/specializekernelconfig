@@ -21,6 +21,8 @@ jobs:
       - run: emerge dev-lang/nim
       - run: USE="symlink" emerge sys-kernel/gentoo-sources
       - run: |
+          # allyesconfig failed to build
+          # even allyesconfig is used, some modules are built as module
           make --directory=/usr/src/linux O=$(pwd)/kernel_build allmodconfig
           # Disable options not required to build kernel faster
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_COMPILE_TEST --disable CONFIG_UAPI_HEADER_TEST --disable CONFIG_EXPERT
@@ -36,7 +38,7 @@ jobs:
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_SAMPLES
           /usr/src/linux/scripts/config --file kernel_build/.config --disable CONFIG_DEBUG_KERNEL
           make --directory=/usr/src/linux O=$(pwd)/kernel_build olddefconfig
-          make --directory=/usr/src/linux -j$(($(nproc)/2)) O=$(pwd)/kernel_build V=1
+          make --directory=/usr/src/linux -j$(nproc) O=$(pwd)/kernel_build V=1
       - run: nim c -r -d:release src/builddb_ko.nim $(pwd)/kernel_build
       - uses: actions/upload-artifact@v7
         with:
