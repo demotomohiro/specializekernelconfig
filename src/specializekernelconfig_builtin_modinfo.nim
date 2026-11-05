@@ -72,10 +72,21 @@ proc readModinfo(path: string; result: var seq[KernelModule]; isBuiltInOnly: boo
 
   echo fmt"There are {modules.len} modules in {path}"
 
+proc readExcludedModules(path: string): HashSet[string] =
+  var f: File = nil
+  if syncio.open(f, path):
+    for l in f.lines:
+      let l2 = l.strip
+      if l2.len != 0 and l2[0] != '#':
+        result.incl l2
+    close f
+
 proc main =
   var modules = newSeq[KernelModule]()
   readModinfo "kernel_build/modules.builtin.modinfo", modules, true
   readModinfo "skc_modules.module.modinfo", modules, false
+
+  var excludedModules = readExcludedModules("excluded_modules.txt")
 
   var moduleSet = initHashSet[string]()
   const SysFs = "/sys/devices"
@@ -105,7 +116,7 @@ proc main =
           echo &"  match {matched.len} modules:"
           for idx in matched:
             template m: untyped {.inject.} = modules[idx]
-            echo &"    {m.name}"
+            echo &"    {m.name}", if m.name in excludedModules: "(excluded)" else: ""
             withValue m.modFields, "description", descs:
               for d in descs[]:
                 echo "      description: ", d
@@ -140,8 +151,9 @@ proc main =
   block:
     var f = syncio.open("module_list.txt", fmWrite)
     for n in moduleSet:
-      write f, n
-      write f, '\n'
+      if n notin excludedModules:
+        write f, n
+        write f, '\n'
     close f
 
 main()
