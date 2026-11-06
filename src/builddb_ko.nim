@@ -35,13 +35,20 @@ for mp in modulePaths:
 
   block:
     var f = memfiles.open(modInfoPath)
+    # it seems 'name' field is the same to .ko file name but all '-' are converted to '_'.
+    var name = modname
+    for slice in f.memSlices('\0', '\0'):
+      var nameF = "name="
+      if slice.size > nameF.len and cmpMem(slice.data, addr nameF[0], nameF.len) == 0:
+        name = cast[ptr UncheckedArray[char]](slice.data).toOpenArray(nameF.len, slice.size - 1).substr
+        break
     for slice in f.memSlices('\0', '\0'):
       # write each field in the same way as "modules.builtin.modinfo" so that I can reuse the proc to read it.
-      output.write modname
+      output.write name
       output.write '.'
       doAssert output.writeBuffer(slice.data, slice.size) == slice.size
       output.write '\0'
-    output.write modname
+    output.write name
     output.write '.'
     output.write "skc_file="
     output.write (mpSplit.dir / mpSplit.name)
