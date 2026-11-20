@@ -18,7 +18,7 @@ jobs:
       # https://github.com/gentoo/gentoo-docker-images/issues/81
       # and use binary package if possible to save time
       - run: echo 'FEATURES="-ipc-sandbox -network-sandbox -pid-sandbox getbinpkg"' >> /etc/portage/make.conf
-      - run: emerge dev-lang/nim
+      - run: ACCEPT_KEYWORDS="~amd64" emerge dev-lang/nim
       - run: USE="symlink" emerge sys-kernel/gentoo-sources
       - run: |
           # allyesconfig failed to build
