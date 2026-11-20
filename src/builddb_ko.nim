@@ -57,3 +57,6 @@ for mp in modulePaths:
 
 removeFile modInfoPath
 close output
+
+import config2mod
+initConfig2Mod("/usr/src/linux").writeConfig2Mod("skc_config2mod.txt")
