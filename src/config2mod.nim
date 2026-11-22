@@ -195,8 +195,9 @@ proc expandVarRef(x: string; variables: Variables): string =
       result.add variables.getVariableValue($x[n + 1])
       i = n + 2
 
-let simplePattern = peg"^ 'obj-$' ('(' / '{') 'CONFIG_' {[A-Z0-9_]+} (')' / '}') \s* [:+]? '=' \s* {.*}$"
-let substPattern = peg"^ 'obj-$' ('(' / '{') 'subst' @',' @',' '$' ('(' / '{') 'CONFIG_' {[A-Z0-9_]+} ('))' / '}}') \s* [:+]? '=' \s* {.*}$"
+# Most of kernel config names doesn't have lower case latters but some of them have. e.g. `CONFIG_SND_SOC_INTEL_SOF_PCM512x_MACH`
+let simplePattern = peg"^ ' '* 'obj-$' ('(' / '{') 'CONFIG_' {[A-Z0-9x_]+} (')' / '}') \s* [:+]? '=' \s* {.*}$"
+let substPattern = peg"^ ' '* 'obj-$' ('(' / '{') 'subst' @',' @',' '$' ('(' / '{') 'CONFIG_' {[A-Z0-9x_]+} ('))' / '}}') \s* [:+]? '=' \s* {.*}$"
 
 proc matchConfig(x: string; variables: Variables): tuple[conf: string, moduleNames: HashSet[string]] =
   # need to parse lines like "obj-$(CONFIG_FOO) += foo.o"
@@ -213,7 +214,12 @@ proc matchConfig(x: string; variables: Variables): tuple[conf: string, moduleNam
     let rhs = expandVarRef(matches[1], variables)
     for n in rhs.split:
       if n.endsWith(".o"):
-        moduleNames.incl n[0 ..^ 3]
+        var s = n.rfind('/')
+        if s == -1:
+          s = 0
+        else:
+          inc s
+        moduleNames.incl n[s ..^ 3]
     result = (matches[0], moduleNames)
   else:
     result = ("", HashSet[string]())
