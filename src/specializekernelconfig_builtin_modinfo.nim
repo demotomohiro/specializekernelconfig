@@ -1,5 +1,5 @@
 import std/[algorithm, os, sets, strformat, strutils, syncio, tables]
-import builtin_modinfo
+import builtin_modinfo, mod2config
 
 proc cfnmatch(pattern, string: cstring; flags: cint): cint {.importc: "fnmatch", header: "<fnmatch.h>".}
 
@@ -26,6 +26,7 @@ proc readExcludedModules(path: string): HashSet[string] =
 proc main =
   let modules = readModinfo()
   var excludedModules = readExcludedModules("excluded_modules.txt")
+  let mod2config = loadMod2Config()
 
   var moduleSet = initHashSet[string]()
   const SysFs = "/sys/devices"
@@ -55,7 +56,7 @@ proc main =
           echo &"  match {matched.len} modules:"
           for idx in matched:
             template m: untyped {.inject.} = modules[idx]
-            echo &"    {m.name}", if m.name in excludedModules: "(excluded)" else: ""
+            echo &"    {m.name}", mod2config.getOrDefault(m.name), if m.name in excludedModules: "(excluded)" else: ""
             withValue m.modFields, "description", descs:
               for d in descs:
                 echo "      description: ", d
@@ -93,6 +94,16 @@ proc main =
       if n notin excludedModules:
         write f, n
         write f, '\n'
+    close f
+
+  block:
+    var f = syncio.open("config_list.txt", fmWrite)
+    for n in moduleSet:
+      if n notin excludedModules:
+        write f, "# " & n & "\n"
+        for c in mod2config.getOrDefault(n):
+          write f, c
+          write f, '\n'
     close f
 
 main()
