@@ -1,5 +1,5 @@
 import std/[os, sets, strformat, strutils, syncio, tables]
-import builtin_modinfo, mod2config, deviceDir
+import builtin_modinfo, mod2config, deviceDir, device_name
 
 proc cfnmatch(pattern, string: cstring; flags: cint): cint {.importc: "fnmatch", header: "<fnmatch.h>".}
 
@@ -30,6 +30,8 @@ proc main =
       echo "  Empty modalias!"
     else:
       echo "  modalias: ", modalias
+      if (let name = getDeviceName(path, modalias); name != ""):
+        echo "  ", name
       var matched = newSeq[int](0)
       for i, m in modules.pairs:
         for p in m.modAliasPatterns:
